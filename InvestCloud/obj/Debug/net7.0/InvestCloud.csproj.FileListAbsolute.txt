@@ -1,0 +1,17 @@
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Debug\net7.0\InvestCloud.exe
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Debug\net7.0\InvestCloud.deps.json
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Debug\net7.0\InvestCloud.runtimeconfig.json
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Debug\net7.0\InvestCloud.dll
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Debug\net7.0\InvestCloud.pdb
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.csproj.AssemblyReference.cache
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.GeneratedMSBuildEditorConfig.editorconfig
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.AssemblyInfoInputs.cache
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.AssemblyInfo.cs
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.csproj.CoreCompileInputs.cache
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.dll
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\refint\InvestCloud.dll
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.pdb
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.genruntimeconfig.cache
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\ref\InvestCloud.dll
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Debug\net7.0\Newtonsoft.Json.dll
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\obj\Debug\net7.0\InvestCloud.csproj.CopyComplete
