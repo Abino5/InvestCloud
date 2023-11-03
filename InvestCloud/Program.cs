@@ -9,76 +9,122 @@ using Newtonsoft;
 using Newtonsoft.Json;
 
 string baseURL = "https://recruitment-test.investcloud.com/";
-
-string initDatasetURL = "api/numbers/init/1000";
 string retrieveRowURL = "api/numbers/";
-string retrieveColURL = "api/numbers/";
 
 int[][] DatasetA  = new int[10][];
 int[][] DatasetB= new int[10][];
 
-for (var initIndex = 0; initIndex < 1000; initIndex++)
-{
-
-    var RowURL = retrieveRowURL + "A/row/" + initIndex;
-    using (var client = new HttpClient())
+var AURLs = new List<string>();
+var BURLs = new List<string>();
+bool process = true;
+var task = Task.Run(() => {
+    int x = 0;
+    while (process)
     {
-        var url = new Uri(String.Concat(baseURL, RowURL));
-        var rows = JsonConvert.DeserializeObject<DatasetClass>(client.GetStringAsync(url).Result);
-        DatasetA = new int[rows.Value.Count][];
-        for (int i = 0; i < rows.Value.Count; i++)
-        {
-            var values = rows.Value[i];
-            DatasetA[i] = new int[rows.Value.Count];
-            for (int j = 0; j < rows.Value.Count; j++)
-            {
-                DatasetA[i][j] = int.Parse(rows.Value[j].ToString());
-            }
-        }
-
+        x += 1;
+        var sec = x < 2 ? " Sec" : " Secs";
+        Console.WriteLine("Elapsed : "+x + sec);
+        Thread.Sleep(1000);
     }
-}
+});
 
 for (var initIndex = 0; initIndex < 1000; initIndex++)
 {
-    Console.WriteLine("Processing : "+ initIndex);
-    var RowURL = retrieveRowURL + "B/row/" + initIndex;
+    var ARowURL = baseURL + retrieveRowURL + "A/row/" + initIndex;
+    AURLs.Add(ARowURL);
+    var BRowURL = baseURL + retrieveRowURL + "B/row/" + initIndex;
+    BURLs.Add(BRowURL);
+}
+
+
     using (var client = new HttpClient())
     {
-        var url = new Uri(String.Concat(baseURL, RowURL));
-        var rows = JsonConvert.DeserializeObject<DatasetClass>(client.GetStringAsync(url).Result);
-        DatasetB = new int[rows.Value.Count][];
-        for (int i = 0; i < rows.Value.Count; i++)
+        var requests = BURLs.Select
+            (
+                url => client.GetAsync(url)
+            ).ToList();
+        await Task.WhenAll(requests);
+
+        var responses = requests.Select
+            (
+                task => task.Result
+            );
+
+        foreach (var r in responses)
         {
-            var values = rows.Value[i];
-            DatasetB[i] = new int[rows.Value.Count];
-            for (int j = 0; j < rows.Value.Count; j++)
+            var rowsX = await r.Content.ReadAsStringAsync();
+            var rows = JsonConvert.DeserializeObject<DatasetClass>(rowsX);
+
+            DatasetA = new int[rows.Value.Count][];
+            for (int i = 0; i < rows.Value.Count; i++)
             {
-                DatasetB[i][j] = int.Parse(rows.Value[j].ToString());
+                var values = rows.Value[i];
+                DatasetA[i] = new int[rows.Value.Count];
+                for (int j = 0; j < rows.Value.Count; j++)
+                {
+                    DatasetA[i][j] = int.Parse(rows.Value[j].ToString());
+                }
             }
         }
 
+
     }
-}
 
 
-var resultMatrix = MultiplyMatrices(DatasetA, DatasetB);
+    using (var client = new HttpClient())
+    {
+        //Start requests for all of them
+        var requests = BURLs.Select
+            (
+                url => client.GetAsync(url)
+            ).ToList();
+        //Wait for all the requests to finish
+        await Task.WhenAll(requests);
 
-string concatenatedResult = FormatMatrixAsString(resultMatrix);
+        //Get the responses
+        var responses = requests.Select
+            (
+                task => task.Result
+            );
 
-string md5Hash = CalculateMD5(concatenatedResult);
+        foreach (var r in responses)
+        {
+            // Extract the message body
+            var rowsX = await r.Content.ReadAsStringAsync();
+            var rows = JsonConvert.DeserializeObject<DatasetClass>(rowsX);
 
-bool validationResult = await ValidateMD5Hash(md5Hash);
+            DatasetB = new int[rows.Value.Count][];
+            for (int i = 0; i < rows.Value.Count; i++)
+            {
+                var values = rows.Value[i];
+                DatasetB[i] = new int[rows.Value.Count];
+                for (int j = 0; j < rows.Value.Count; j++)
+                {
+                    DatasetB[i][j] = int.Parse(rows.Value[j].ToString());
+                }
+            }
+        }
 
-if (validationResult)
-{
-    Console.WriteLine("Validation successful");
-}
-else
-{
-    Console.WriteLine("Validation failed");
-}
 
+    }
+
+    var resultMatrix = MultiplyMatrices(DatasetA, DatasetB);
+
+    string concatenatedResult = FormatMatrixAsString(resultMatrix);
+
+    string md5Hash = CalculateMD5(concatenatedResult);
+
+    bool validationResult = await ValidateMD5Hash(md5Hash);
+
+    if (validationResult)
+    {
+        Console.WriteLine("Validation Successful");
+    }
+    else
+    {
+        Console.WriteLine("Validation Failed");
+    }
+process = false;
 
 
 static int[][] MultiplyMatrices(int[][] matrixA, int[][] matrixB)
