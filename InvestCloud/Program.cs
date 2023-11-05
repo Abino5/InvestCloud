@@ -136,7 +136,7 @@ else
 }
 process = false;
 
-float mins = timer/60;
+float mins = timer / 60;
 var sec = "Total elapsed time: " + timer + " secs (" + mins.ToString("0.00") + " mins)";
 Console.WriteLine(sec);
 Console.WriteLine("Task completed...thank you for your patience!");
