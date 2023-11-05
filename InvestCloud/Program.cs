@@ -1,32 +1,33 @@
-﻿using System;
+﻿using InvestCloud;
+using Newtonsoft.Json;
 using System.Data;
-using System.Diagnostics;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using InvestCloud;
-using Newtonsoft;
-using Newtonsoft.Json;
 
 string baseURL = "https://recruitment-test.investcloud.com/";
 string retrieveRowURL = "api/numbers/";
 
-int[][] DatasetA  = new int[10][];
-int[][] DatasetB= new int[10][];
+int[][] DatasetA = new int[1000][];
+int[][] DatasetB = new int[1000][];
 
 var AURLs = new List<string>();
 var BURLs = new List<string>();
+var ObjA = new List<DatasetClass>();
+var ObjB = new List<DatasetClass>();
+
 bool process = true;
-var task = Task.Run(() => {
-    int x = 0;
+int timer = 0;
+
+var task = Task.Run(() =>
+{
     while (process)
     {
-        x += 1;
-        var sec = x < 2 ? " Sec" : " Secs";
-        Console.WriteLine("Elapsed : "+x + sec);
+        timer += 1;
         Thread.Sleep(1000);
     }
 });
+
+Console.WriteLine("Generating required URLs...");
 
 for (var initIndex = 0; initIndex < 1000; initIndex++)
 {
@@ -36,100 +37,114 @@ for (var initIndex = 0; initIndex < 1000; initIndex++)
     BURLs.Add(BRowURL);
 }
 
+Console.WriteLine("Initializing 1000 x 1000 datasets");
+InitDatasets();
 
-    using (var client = new HttpClient())
+Console.WriteLine("Retrieving rows for Dataset A and mapping into local object list...");
+
+using (var client = new HttpClient())
+{
+    var requests = BURLs.Select
+        (
+            url => client.GetAsync(url)
+        ).ToList();
+    await Task.WhenAll(requests);
+
+    var responses = requests.Select
+        (
+            task => task.Result
+        );
+
+    foreach (var r in responses)
     {
-        var requests = BURLs.Select
-            (
-                url => client.GetAsync(url)
-            ).ToList();
-        await Task.WhenAll(requests);
+        var rowsX = await r.Content.ReadAsStringAsync();
+        var rows = JsonConvert.DeserializeObject<DatasetClass>(rowsX);
+        ObjA.Add(rows);
 
-        var responses = requests.Select
-            (
-                task => task.Result
-            );
+    }
 
-        foreach (var r in responses)
-        {
-            var rowsX = await r.Content.ReadAsStringAsync();
-            var rows = JsonConvert.DeserializeObject<DatasetClass>(rowsX);
 
-            DatasetA = new int[rows.Value.Count][];
-            for (int i = 0; i < rows.Value.Count; i++)
-            {
-                var values = rows.Value[i];
-                DatasetA[i] = new int[rows.Value.Count];
-                for (int j = 0; j < rows.Value.Count; j++)
-                {
-                    DatasetA[i][j] = int.Parse(rows.Value[j].ToString());
-                }
-            }
-        }
+}
+
+Console.WriteLine("Retrieving rows for Dataset B and mapping into local object list...");
+
+using (var client = new HttpClient())
+{
+    var requests = BURLs.Select
+        (
+            url => client.GetAsync(url)
+        ).ToList();
+    await Task.WhenAll(requests);
+
+    var responses = requests.Select
+        (
+            task => task.Result
+        );
+
+    foreach (var r in responses)
+    {
+        var rowsX = await r.Content.ReadAsStringAsync();
+        var rows = JsonConvert.DeserializeObject<DatasetClass>(rowsX);
+        ObjB.Add(rows);
 
 
     }
 
 
-    using (var client = new HttpClient())
+}
+Console.WriteLine("Creating 2D array object from Lists...");
+
+DatasetA = new int[ObjA[0].Value.Count][];
+DatasetB = new int[ObjA[0].Value.Count][];
+for (int i = 0; i < ObjA[0].Value.Count; i++)
+{
+    DatasetA[i] = new int[ObjA[0].Value.Count];
+    DatasetB[i] = new int[ObjA[0].Value.Count];
+    for (int j = 0; j < ObjA[0].Value.Count; j++)
     {
-        //Start requests for all of them
-        var requests = BURLs.Select
-            (
-                url => client.GetAsync(url)
-            ).ToList();
-        //Wait for all the requests to finish
-        await Task.WhenAll(requests);
-
-        //Get the responses
-        var responses = requests.Select
-            (
-                task => task.Result
-            );
-
-        foreach (var r in responses)
-        {
-            // Extract the message body
-            var rowsX = await r.Content.ReadAsStringAsync();
-            var rows = JsonConvert.DeserializeObject<DatasetClass>(rowsX);
-
-            DatasetB = new int[rows.Value.Count][];
-            for (int i = 0; i < rows.Value.Count; i++)
-            {
-                var values = rows.Value[i];
-                DatasetB[i] = new int[rows.Value.Count];
-                for (int j = 0; j < rows.Value.Count; j++)
-                {
-                    DatasetB[i][j] = int.Parse(rows.Value[j].ToString());
-                }
-            }
-        }
-
+        DatasetA[i][j] = int.Parse(ObjA[i].Value[j].ToString());
+        DatasetB[i][j] = int.Parse(ObjB[i].Value[j].ToString());
 
     }
+}
 
-    var resultMatrix = MultiplyMatrices(DatasetA, DatasetB);
 
-    string concatenatedResult = FormatMatrixAsString(resultMatrix);
+Console.WriteLine("Multiplying Datasets...");
 
-    string md5Hash = CalculateMD5(concatenatedResult);
+var resultMatrix = MultiplyMatrices(DatasetA, DatasetB);
 
-    bool validationResult = await ValidateMD5Hash(md5Hash);
+Console.WriteLine("Formatting Dataset as string...");
 
-    if (validationResult)
-    {
-        Console.WriteLine("Validation Successful");
-    }
-    else
-    {
-        Console.WriteLine("Validation Failed");
-    }
+string concatenatedResult = FormatMatrixAsString(resultMatrix);
+
+
+Console.WriteLine("Calculating MD5...");
+
+string md5Hash = CalculateMD5(concatenatedResult);
+
+Console.WriteLine("Validating generated MD5 hash...");
+
+bool validationResult = await ValidateMD5Hash(md5Hash);
+
+if (validationResult)
+{
+    Console.WriteLine("Validation Successful");
+}
+else
+{
+    Console.WriteLine("Validation Failed");
+}
 process = false;
 
+float mins = timer/60;
+var sec = "Total elapsed time: " + timer + " secs (" + mins.ToString("0.00") + " mins)";
+Console.WriteLine(sec);
+Console.WriteLine("Task completed...thank you for your patience!");
 
+//Start of defining computation functions
 static int[][] MultiplyMatrices(int[][] matrixA, int[][] matrixB)
 {
-    
+
     int rowsA = matrixA.Length;
     int colsA = matrixA[0].Length;
     int colsB = matrixB[0].Length;
@@ -150,10 +165,9 @@ static int[][] MultiplyMatrices(int[][] matrixA, int[][] matrixB)
 
     return resultMatrix;
 }
-
 static string FormatMatrixAsString(int[][] matrix)
 {
-    
+
     StringBuilder sb = new StringBuilder();
     foreach (var row in matrix)
     {
@@ -164,7 +178,6 @@ static string FormatMatrixAsString(int[][] matrix)
     }
     return sb.ToString();
 }
-
 static string CalculateMD5(string input)
 {
     using (MD5 md5 = MD5.Create())
@@ -180,9 +193,12 @@ static string CalculateMD5(string input)
     }
 }
 
+//End of defining computation functions
+
+//Start of defining http call functions
 static async Task<bool> ValidateMD5Hash(string md5Hash)
 {
-    
+
     using (var httpClient = new HttpClient())
     {
         var validationUrl = "https://recruitment-test.investcloud.com/api/numbers/validate";
@@ -198,4 +214,14 @@ static async Task<bool> ValidateMD5Hash(string md5Hash)
         return false; // Validation failed
     }
 }
+static void InitDatasets()
+{
 
+    using (var client = new HttpClient())
+    {
+        var url = "https://recruitment-test.investcloud.com/api/numbers/init/1000";
+        client.GetAsync(url);
+
+    };
+}
+//End of defining validation functions

@@ -1,0 +1,6 @@
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Release\net7.0\publish\InvestCloud.exe
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Release\net7.0\publish\InvestCloud.dll
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Release\net7.0\publish\InvestCloud.deps.json
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Release\net7.0\publish\InvestCloud.runtimeconfig.json
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Release\net7.0\publish\InvestCloud.pdb
+\\Mac\Home\Desktop\Projects\InvestCloud\InvestCloud\bin\Release\net7.0\publish\Newtonsoft.Json.dll
